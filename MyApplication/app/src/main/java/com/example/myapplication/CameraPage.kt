@@ -14,9 +14,9 @@ import android.hardware.camera2.CameraManager
 import android.os.Bundle
 import android.os.Handler
 import android.os.HandlerThread
-import android.util.Log
 import android.view.Surface
 import android.view.TextureView
+import android.widget.ImageButton
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 import com.example.myapplication.ml.AutoModel4
@@ -28,7 +28,13 @@ import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
 
 class CameraPage : AppCompatActivity() {
 
-    val paint = Paint()
+    val paint = Paint().apply {
+        color = Color.GREEN
+        style = Paint.Style.FILL_AND_STROKE
+        strokeWidth = 5f
+        isAntiAlias = true
+    }
+
     lateinit var imageProcessor: ImageProcessor
     lateinit var model: AutoModel4
     lateinit var bitmap: Bitmap
@@ -52,8 +58,10 @@ class CameraPage : AppCompatActivity() {
         handlerThread.start()
         handler = Handler(handlerThread.looper)
 
-        paint.color = Color.GREEN
-
+        val backBtn: ImageButton = findViewById(R.id.backBtn)
+        backBtn.setOnClickListener {
+            finish()
+        }
         textureView.surfaceTextureListener = object:TextureView.SurfaceTextureListener{
             override fun onSurfaceTextureAvailable(p0: SurfaceTexture, p1: Int, p2: Int) {
                 open_camera()
@@ -79,48 +87,72 @@ class CameraPage : AppCompatActivity() {
                 val outputs = model.process(inputFeature0)
                 val outputFeature0 = outputs.outputFeature0AsTensorBuffer.floatArray
 
-                var mutable = bitmap.copy(Bitmap.Config.ARGB_8888, true)
-                var canvas = Canvas(mutable)
-                var h = bitmap.height
-                var w = bitmap.width
-                var x = 0
+                var mutableBitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true)
+                var canvas = Canvas(mutableBitmap)
+                val h = bitmap.height
+                val w = bitmap.width
 
-                Log.d("output__", outputFeature0.size.toString())
-                val jointCoordinates = mutableListOf<Pair<Float, Float>>()
-                val requiredKeypoints = setOf(0, 1, 2, 3, 5, 6, 7, 8, 10)
-                while(x <= 49){
-                    if (outputFeature0.get(x + 2) > 0.45 && outputFeature0.get(x).toInt() in requiredKeypoints) {
-                        canvas.drawCircle(outputFeature0.get(x+1)*w, outputFeature0.get(x)*h, 10f, paint)
-                        jointCoordinates.add(Pair(outputFeature0.get(x + 1) * w, outputFeature0.get(x) * h))
-                    }
-                    x+=3
-                }
-                val threshold = 0.4 // Adjust this threshold as needed
-                val connections = listOf(
-                    Pair(9, 8),  // right wrist -> right elbow
-                    Pair(8, 7),  // right elbow -> right shoulder
-                    Pair(7, 6),  // right shoulder -> left shoulder
-                    Pair(6, 5),  // left shoulder -> left elbow
-                    Pair(5, 9),  // left elbow -> left wrist
-                    Pair(7, 11), // right shoulder -> right hip
-                    Pair(6, 12), // left shoulder -> left hip
-                    Pair(11, 13),// right hip -> right knee
-                    Pair(12, 14),// left hip -> left knee
-                    Pair(13, 15),// right knee -> right ankle
-                    Pair(14, 16) // left knee -> left ankle
+                val jointCoordinates = Array<Pair<Float, Float>?>(17) { null }
+                val confidenceThreshold = 0.5f
+
+                val KEYPOINT_DICT = mapOf(
+                    "left_shoulder" to 5,
+                    "right_shoulder" to 6,
+                    "left_elbow" to 7,
+                    "right_elbow" to 8,
+                    "left_wrist" to 9,
+                    "right_wrist" to 10,
+                    "left_hip" to 11,
+                    "right_hip" to 12,
+                    "left_knee" to 13,
+                    "right_knee" to 14,
+                    "left_ankle" to 15,
+                    "right_ankle" to 16
                 )
 
-                paint.strokeWidth = 5f
-
-                for ((start, end) in connections) {
-                    if (start < jointCoordinates.size && end < jointCoordinates.size) {
-                        canvas.drawLine(jointCoordinates[start].first, jointCoordinates[start].second,
-                            jointCoordinates[end].first, jointCoordinates[end].second, paint)
-                    } else {
-                        Log.e("Error", "Invalid indices for drawing line: ($start, $end)")
+                val KEYPOINT_EDGE_INDS_TO_COLOR = mapOf(
+                    Pair("left_shoulder", "right_shoulder") to "#00FF00", // Green for upper torso
+                    Pair("left_shoulder", "left_elbow") to "#0000FF", // Blue for left arm
+                    Pair("left_elbow", "left_wrist") to "#0000FF", // Blue
+                    Pair("right_shoulder", "right_elbow") to "#FFFF00", // Yellow for right arm
+                    Pair("right_elbow", "right_wrist") to "#FFFF00", // Yellow
+                    Pair("left_shoulder", "left_hip") to "#00FFFF", // Cyan for left side of torso
+                    Pair("right_shoulder", "right_hip") to "#FF00FF", // Magenta for right side of torso
+                    Pair("left_hip", "right_hip") to "#FFA500", // Orange for lower torso
+                    Pair("left_hip", "left_knee") to "#A52A2A", // Brown for left leg
+                    Pair("left_knee", "left_ankle") to "#A52A2A", // Brown
+                    Pair("right_hip", "right_knee") to "#800080", // Purple for right leg
+                    Pair("right_knee", "right_ankle") to "#800080"  // Purple
+                )
+                // Extract keypoints with names for readability
+                for (i in 0 until outputFeature0.size step 3) {
+                    val confidence = outputFeature0[i + 2]
+                    if (confidence > confidenceThreshold) {
+                        val y = outputFeature0[i] * h
+                        val x = outputFeature0[i + 1] * w
+                        jointCoordinates[i / 3] = Pair(x, y)
+                        // Optionally draw keypoints here
                     }
                 }
-                imageView.setImageBitmap(mutable)
+
+                // Use your paint object as needed for drawing
+                val paint = Paint().apply {
+                    style = Paint.Style.STROKE
+                    strokeWidth = 5f
+                    color = Color.BLACK
+                }
+
+                // Drawing lines using named connections and color coding
+                for ((start, end) in KEYPOINT_EDGE_INDS_TO_COLOR.keys) {
+                    val startPoint = jointCoordinates[KEYPOINT_DICT.getValue(start)]
+                    val endPoint = jointCoordinates[KEYPOINT_DICT.getValue(end)]
+                    if (startPoint != null && endPoint != null) {
+                        paint.color = Color.parseColor(KEYPOINT_EDGE_INDS_TO_COLOR.getValue(start to end)) // Update paint color
+                        canvas.drawLine(startPoint.first, startPoint.second, endPoint.first, endPoint.second, paint)
+                    }
+                }
+
+                imageView.setImageBitmap(mutableBitmap)
             }
         }
     }
@@ -156,7 +188,6 @@ class CameraPage : AppCompatActivity() {
             }
         }, handler)
     }
-
     fun get_permissions(){
         if(checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED){
             requestPermissions(arrayOf(Manifest.permission.CAMERA), 101)
