@@ -16,8 +16,10 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.view.Surface
 import android.view.TextureView
+import android.widget.Button
 import android.widget.ImageButton
 import android.widget.ImageView
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.example.myapplication.ml.AutoModel4
 import org.tensorflow.lite.DataType
@@ -43,11 +45,20 @@ class CameraPage : AppCompatActivity() {
     lateinit var handlerThread: HandlerThread
     lateinit var textureView: TextureView
     lateinit var cameraManager: CameraManager
+    lateinit var exercise: Exercise
+    var isExerciseStarted = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_camera_page)
         get_permissions()
+
+        val startExerciseButton: Button = findViewById(R.id.startBtn)
+        startExerciseButton.setOnClickListener {
+            isExerciseStarted = true
+        }
+
+        exercise = HighPlankExercise(this)
 
         imageProcessor = ImageProcessor.Builder().add(ResizeOp(192, 192, ResizeOp.ResizeMethod.BILINEAR)).build()
         model = AutoModel4.newInstance(this)
@@ -58,10 +69,15 @@ class CameraPage : AppCompatActivity() {
         handlerThread.start()
         handler = Handler(handlerThread.looper)
 
+        val title = intent.getStringExtra("TITLE") ?: "Title"
+        val titleTextView: TextView = findViewById(R.id.title)
+        titleTextView.text = title
+
         val backBtn: ImageButton = findViewById(R.id.backBtn)
         backBtn.setOnClickListener {
             finish()
         }
+
         textureView.surfaceTextureListener = object:TextureView.SurfaceTextureListener{
             override fun onSurfaceTextureAvailable(p0: SurfaceTexture, p1: Int, p2: Int) {
                 open_camera()
@@ -93,7 +109,7 @@ class CameraPage : AppCompatActivity() {
                 val w = bitmap.width
 
                 val jointCoordinates = Array<Pair<Float, Float>?>(17) { null }
-                val confidenceThreshold = 0.5f
+                val confidenceThreshold = 0.3f
 
                 val KEYPOINT_DICT = mapOf(
                     "left_shoulder" to 5,
@@ -132,6 +148,21 @@ class CameraPage : AppCompatActivity() {
                         val x = outputFeature0[i + 1] * w
                         jointCoordinates[i / 3] = Pair(x, y)
                         // Optionally draw keypoints here
+                    }
+                }
+
+                // Convert the extracted keypoints to the required format
+                val filteredKeypoints = jointCoordinates.filterNotNull().toTypedArray()
+
+                if (isExerciseStarted) {
+                    val isCorrect = exercise.analyzeKeypoints(filteredKeypoints, confidenceThreshold)
+
+                    // Here, use 'isCorrect' to update the UI or provide real-time feedback to the user
+                    runOnUiThread {
+                        // Update your UI based on 'isCorrect'. This could include changing text, colors, or showing animations.
+                        // Example:
+                        val feedbackTextView: TextView = findViewById(R.id.feedbackTextView)
+                        feedbackTextView.text = if (isCorrect) "Correct High Plank" else "Adjust Your Position"
                     }
                 }
 
