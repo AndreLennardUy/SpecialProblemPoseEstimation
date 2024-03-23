@@ -30,6 +30,7 @@ import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
 
 class CameraPage : AppCompatActivity() {
 
+    // initialization of dots and line
     val paint = Paint().apply {
         color = Color.GREEN
         style = Paint.Style.FILL_AND_STROKE
@@ -53,13 +54,13 @@ class CameraPage : AppCompatActivity() {
         setContentView(R.layout.activity_camera_page)
         get_permissions()
 
+        // Start correcting form
         val startExerciseButton: Button = findViewById(R.id.startBtn)
         startExerciseButton.setOnClickListener {
             isExerciseStarted = true
         }
 
-        exercise = HighPlankExercise(this)
-
+        //initializationo of Components inside activity_camera_page
         imageProcessor = ImageProcessor.Builder().add(ResizeOp(192, 192, ResizeOp.ResizeMethod.BILINEAR)).build()
         model = AutoModel4.newInstance(this)
         imageView = findViewById(R.id.imageView)
@@ -69,16 +70,20 @@ class CameraPage : AppCompatActivity() {
         handlerThread.start()
         handler = Handler(handlerThread.looper)
 
+        // Setting the title of the pose from the button that was click
         val title = intent.getStringExtra("TITLE") ?: "Title"
         val titleTextView: TextView = findViewById(R.id.title)
         titleTextView.text = title
 
+        // back to main view
         val backBtn: ImageButton = findViewById(R.id.backBtn)
         backBtn.setOnClickListener {
             finish()
         }
 
+        // setup of model
         textureView.surfaceTextureListener = object:TextureView.SurfaceTextureListener{
+            // when application is ready it opens the users camera
             override fun onSurfaceTextureAvailable(p0: SurfaceTexture, p1: Int, p2: Int) {
                 open_camera()
             }
@@ -86,31 +91,35 @@ class CameraPage : AppCompatActivity() {
             override fun onSurfaceTextureSizeChanged(p0: SurfaceTexture, p1: Int, p2: Int) {
 
             }
-
+            // When application will close
             override fun onSurfaceTextureDestroyed(p0: SurfaceTexture): Boolean {
                 return false
             }
-
+            // when image detect frames or images
             override fun onSurfaceTextureUpdated(p0: SurfaceTexture) {
+                // setup Model and load
                 bitmap = textureView.bitmap!!
                 var tensorImage = TensorImage(DataType.UINT8)
                 tensorImage.load(bitmap)
                 tensorImage = imageProcessor.process(tensorImage)
 
+                // convert image into tensorflow acceptable data type and size
                 val inputFeature0 = TensorBuffer.createFixedSize(intArrayOf(1, 192, 192, 3), DataType.UINT8)
                 inputFeature0.loadBuffer(tensorImage.buffer)
 
+                // display the processed image into the image
                 val outputs = model.process(inputFeature0)
                 val outputFeature0 = outputs.outputFeature0AsTensorBuffer.floatArray
-
                 var mutableBitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true)
                 var canvas = Canvas(mutableBitmap)
                 val h = bitmap.height
                 val w = bitmap.width
 
+                // join the pair into a line
                 val jointCoordinates = Array<Pair<Float, Float>?>(17) { null }
                 val confidenceThreshold = 0.3f
 
+                // setting keypoints
                 val KEYPOINT_DICT = mapOf(
                     "left_shoulder" to 5,
                     "right_shoulder" to 6,
@@ -125,7 +134,7 @@ class CameraPage : AppCompatActivity() {
                     "left_ankle" to 15,
                     "right_ankle" to 16
                 )
-
+                // pairing keypoints
                 val KEYPOINT_EDGE_INDS_TO_COLOR = mapOf(
                     Pair("left_shoulder", "right_shoulder") to "#00FF00", // Green for upper torso
                     Pair("left_shoulder", "left_elbow") to "#0000FF", // Blue for left arm
@@ -147,26 +156,32 @@ class CameraPage : AppCompatActivity() {
                         val y = outputFeature0[i] * h
                         val x = outputFeature0[i + 1] * w
                         jointCoordinates[i / 3] = Pair(x, y)
-                        // Optionally draw keypoints here
                     }
                 }
 
                 // Convert the extracted keypoints to the required format
                 val filteredKeypoints = jointCoordinates.filterNotNull().toTypedArray()
 
+                // Initialize Object with type of pose
+                when(title){
+                    "High Plank" -> exercise = HighPlankExercise(this@CameraPage)
+                    //"Low Side Plank" -> exercise = LowSideExercise(this@CameraPage)
+                    //"High Side Plank" -> exercise = HighSideExercise(this@CameraPage)
+                    //"Bird Dog" -> exercise = BirdDogExercise(this@CameraPage)
+                    // ADD MORE POSE HERE
+                    // EDIT CLASS IF NAME IS NOT THE SAME
+                }
+
+                // start correcting when "Start" button is clicked
                 if (isExerciseStarted) {
                     val isCorrect = exercise.analyzeKeypoints(filteredKeypoints, confidenceThreshold)
-
-                    // Here, use 'isCorrect' to update the UI or provide real-time feedback to the user
                     runOnUiThread {
-                        // Update your UI based on 'isCorrect'. This could include changing text, colors, or showing animations.
-                        // Example:
                         val feedbackTextView: TextView = findViewById(R.id.feedbackTextView)
                         feedbackTextView.text = if (isCorrect) "Correct High Plank" else "Adjust Your Position"
                     }
                 }
 
-                // Use your paint object as needed for drawing
+                // Applying the paint to the pose form
                 val paint = Paint().apply {
                     style = Paint.Style.STROKE
                     strokeWidth = 5f
@@ -188,11 +203,13 @@ class CameraPage : AppCompatActivity() {
         }
     }
 
+    // close or destory the model
     override fun onDestroy() {
         super.onDestroy()
         model.close()
     }
 
+    // open camera function
     @SuppressLint("MissingPermission")
     fun open_camera(){
         cameraManager.openCamera(cameraManager.cameraIdList[0], object: CameraDevice.StateCallback(){
@@ -219,6 +236,7 @@ class CameraPage : AppCompatActivity() {
             }
         }, handler)
     }
+    // get app permission to use camera
     fun get_permissions(){
         if(checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED){
             requestPermissions(arrayOf(Manifest.permission.CAMERA), 101)

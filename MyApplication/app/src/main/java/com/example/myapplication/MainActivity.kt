@@ -11,11 +11,13 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main)
 
+        // Initialization of Buttons found in activity_main
         val highPlankBtn: Button = findViewById(R.id.highPlank)
         val lowSidePlankBtn: Button = findViewById(R.id.lowSidePlank)
         val highSidePlankBtn: Button = findViewById(R.id.highSidePlank)
         val birdDogBtn: Button = findViewById(R.id.birdDog)
 
+        // Setting onClick Listener and specific functions
         setButtonClickListener(highPlankBtn, "High Plank")
         setButtonClickListener(lowSidePlankBtn, "Low Side Plank")
         setButtonClickListener(highSidePlankBtn, "High Side Plank")
