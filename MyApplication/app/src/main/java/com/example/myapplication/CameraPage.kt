@@ -177,7 +177,7 @@ class CameraPage : AppCompatActivity() {
                     val isCorrect = exercise.analyzeKeypoints(filteredKeypoints, confidenceThreshold)
                     runOnUiThread {
                         val feedbackTextView: TextView = findViewById(R.id.feedbackTextView)
-                        feedbackTextView.text = if (isCorrect) "Correct High Plank" else "Adjust Your Position"
+                        feedbackTextView.text = if (isCorrect) "Correct $title" else "Adjust Your Position"
                     }
                 }
 

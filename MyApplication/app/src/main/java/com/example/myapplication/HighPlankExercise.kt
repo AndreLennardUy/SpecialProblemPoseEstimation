@@ -1,7 +1,7 @@
 package com.example.myapplication
 
 // Class that corrects a High Plank implements an Exercise Interface
-class HighPlankExercise(private val cameraPage: CameraPage) : Exercise {
+class HighPlankExercise(private val cameraPage: CameraPage) : Exercise() {
     // Call the Interface Function
     override fun analyzeKeypoints(keypoints: Array<Pair<Float, Float>>, confidenceThreshold: Float): Boolean {
         return isHighPlankCorrect(keypoints, confidenceThreshold)
@@ -49,18 +49,5 @@ class HighPlankExercise(private val cameraPage: CameraPage) : Exercise {
 
         // Return the calculated angles.
         return listOf(leftArmAngle, rightArmAngle, leftBodyAngle, rightBodyAngle)
-    }
-
-    // Calculates the angle formed by three points.
-    private fun calculateAngle(a: Pair<Float, Float>, b: Pair<Float, Float>, c: Pair<Float, Float>): Float {
-        val angleRadians = Math.atan2((c.second - b.second).toDouble(),
-            (c.first - b.first).toDouble()
-        ) - Math.atan2((a.second - b.second).toDouble(), (a.first - b.first).toDouble())
-        var angleDegrees = Math.toDegrees(angleRadians.toDouble()).toFloat()
-
-        // Normalize the angle to a positive value
-        angleDegrees = if (angleDegrees < 0) angleDegrees + 360 else angleDegrees
-
-        return angleDegrees
     }
 }
