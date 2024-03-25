@@ -165,7 +165,7 @@ class CameraPage : AppCompatActivity() {
                 // Initialize Object with type of pose
                 when(title){
                     "High Plank" -> exercise = HighPlankExercise(this@CameraPage)
-                    //"Low Side Plank" -> exercise = LowSideExercise(this@CameraPage)
+                    "Low Side Plank" -> exercise = LowSidePlankExercise(this@CameraPage)
                     //"High Side Plank" -> exercise = HighSideExercise(this@CameraPage)
                     //"Bird Dog" -> exercise = BirdDogExercise(this@CameraPage)
                     // ADD MORE POSE HERE
