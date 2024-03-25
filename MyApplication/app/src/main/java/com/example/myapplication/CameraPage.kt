@@ -12,6 +12,7 @@ import android.hardware.camera2.CameraCaptureSession
 import android.hardware.camera2.CameraDevice
 import android.hardware.camera2.CameraManager
 import android.os.Bundle
+import android.os.CountDownTimer
 import android.os.Handler
 import android.os.HandlerThread
 import android.view.Surface
@@ -27,6 +28,7 @@ import org.tensorflow.lite.support.image.ImageProcessor
 import org.tensorflow.lite.support.image.TensorImage
 import org.tensorflow.lite.support.image.ops.ResizeOp
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
+
 
 class CameraPage : AppCompatActivity() {
 
@@ -54,10 +56,21 @@ class CameraPage : AppCompatActivity() {
         setContentView(R.layout.activity_camera_page)
         get_permissions()
 
-        // Start correcting form
+        // Start correcting form and timer
         val startExerciseButton: Button = findViewById(R.id.startBtn)
+        val countDown: TextView = findViewById(R.id.countDown)
+        val feedbackTextView: TextView = findViewById(R.id.feedbackTextView)
+        var countDownTimer: CountDownTimer? = null
         startExerciseButton.setOnClickListener {
-            isExerciseStarted = true
+           if( isExerciseStarted){
+               isExerciseStarted = false
+               countDownTimer?.cancel()
+               countDown.text = ""
+               feedbackTextView.text = ""
+           } else {
+               isExerciseStarted = true
+               countDownTimer = startCountDownTimer(countDown, 30000, 1000)
+           }
         }
 
         //initializationo of Components inside activity_camera_page
@@ -174,11 +187,13 @@ class CameraPage : AppCompatActivity() {
 
                 // start correcting when "Start" button is clicked
                 if (isExerciseStarted) {
+                    startExerciseButton.text = "Stop"
                     val isCorrect = exercise.analyzeKeypoints(filteredKeypoints, confidenceThreshold)
                     runOnUiThread {
-                        val feedbackTextView: TextView = findViewById(R.id.feedbackTextView)
                         feedbackTextView.text = if (isCorrect) "Correct $title" else "Adjust Your Position"
                     }
+                }else {
+                    startExerciseButton.text = "Start"
                 }
 
                 // Applying the paint to the pose form
@@ -245,5 +260,22 @@ class CameraPage : AppCompatActivity() {
     override fun onRequestPermissionsResult(  requestCode: Int, permissions: Array<out String>, grantResults: IntArray  ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if(grantResults[0] != PackageManager.PERMISSION_GRANTED) get_permissions()
+    }
+
+    fun startCountDownTimer(countDown: TextView, totalTime: Long, countDownInterval: Long): CountDownTimer {
+        val timer = object : CountDownTimer(totalTime, countDownInterval) {
+            override fun onTick(millisUntilFinished: Long) {
+                // Update the TextView
+                val secondsRemaining = millisUntilFinished / 1000
+                countDown.text = "$secondsRemaining"
+            }
+
+            override fun onFinish() {
+                // Display finished text
+                countDown.text = "FINISH!!"
+            }
+        }
+        timer.start()
+        return timer
     }
 }

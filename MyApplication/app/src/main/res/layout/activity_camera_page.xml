@@ -55,7 +55,7 @@
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="58dp"
         android:background="@android:color/holo_green_dark"
-        android:text="Start" />
+    />
 
     <TextView
         android:id="@+id/feedbackTextView"
@@ -65,5 +65,16 @@
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="28dp"
         android:text="" />
+
+    <TextView
+        android:id="@+id/countDown"
+        android:layout_width="135dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="128dp"
+        android:textAlignment="center"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textSize="40sp" />
 
 </RelativeLayout>
