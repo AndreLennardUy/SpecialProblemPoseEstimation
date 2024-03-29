@@ -11,6 +11,8 @@ import android.graphics.SurfaceTexture
 import android.hardware.camera2.CameraCaptureSession
 import android.hardware.camera2.CameraDevice
 import android.hardware.camera2.CameraManager
+import android.media.AudioAttributes
+import android.media.SoundPool
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.os.Handler
@@ -40,6 +42,22 @@ class CameraPage : AppCompatActivity() {
         isAntiAlias = true
     }
 
+    // Initialization of soundPool
+    val audioAttributes = AudioAttributes.Builder()
+        .setUsage(AudioAttributes.USAGE_GAME)
+        .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+        .build()
+
+    val soundPool = SoundPool.Builder()
+        .setMaxStreams(10)
+        .setAudioAttributes(audioAttributes)
+        .build()
+
+    private var end: Int = 0
+    private var start: Int = 0
+    private var error: Int = 0
+
+
     lateinit var imageProcessor: ImageProcessor
     lateinit var model: AutoModel4
     lateinit var bitmap: Bitmap
@@ -56,18 +74,25 @@ class CameraPage : AppCompatActivity() {
         setContentView(R.layout.activity_camera_page)
         get_permissions()
 
+        // init sounds
+        start = soundPool.load(this, R.raw.start, 1)
+        end = soundPool.load(this, R.raw.end, 1)
+        error = soundPool.load(this, R.raw.error, 1)
+
         // Start correcting form and timer
         val startExerciseButton: Button = findViewById(R.id.startBtn)
         val countDown: TextView = findViewById(R.id.countDown)
         val feedbackTextView: TextView = findViewById(R.id.feedbackTextView)
         var countDownTimer: CountDownTimer? = null
         startExerciseButton.setOnClickListener {
-           if( isExerciseStarted){
+           if( isExerciseStarted ){
+               soundPool.play(end , 1f, 1f, 0, 0, 1f)
                isExerciseStarted = false
                countDownTimer?.cancel()
                countDown.text = ""
                feedbackTextView.text = ""
            } else {
+               soundPool.play(start , 1f, 1f, 0, 0, 1f)
                isExerciseStarted = true
                countDownTimer = startCountDownTimer(countDown, 30000, 1000)
            }
@@ -192,6 +217,8 @@ class CameraPage : AppCompatActivity() {
                     runOnUiThread {
                         feedbackTextView.text = if (isCorrect) "Correct $title" else "Adjust Your Position"
                     }
+                    if(!isCorrect) soundPool.play(error, 1f, 1f, 0, 0, 1f)
+
                 }else {
                     startExerciseButton.text = "Start"
                 }
@@ -273,9 +300,13 @@ class CameraPage : AppCompatActivity() {
             override fun onFinish() {
                 // Display finished text
                 countDown.text = "FINISH!!"
+                isExerciseStarted = false
+                soundPool.play(end, 1f, 1f, 0, 0, 1f)
             }
         }
         timer.start()
         return timer
     }
+
+
 }

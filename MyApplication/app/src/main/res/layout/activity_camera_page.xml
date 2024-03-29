@@ -68,7 +68,7 @@
 
     <TextView
         android:id="@+id/countDown"
-        android:layout_width="135dp"
+        android:layout_width="178dp"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
