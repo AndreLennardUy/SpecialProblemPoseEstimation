@@ -204,7 +204,7 @@ class CameraPage : AppCompatActivity() {
                 when(title){
                     "High Plank" -> exercise = HighPlankExercise(this@CameraPage)
                     "Low Side Plank" -> exercise = LowSidePlankExercise(this@CameraPage)
-                    //"High Side Plank" -> exercise = HighSideExercise(this@CameraPage)
+                    "High Side Plank" -> exercise = HighSidePlankExercise(this@CameraPage)
                     //"Bird Dog" -> exercise = BirdDogExercise(this@CameraPage)
                     // ADD MORE POSE HERE
                     // EDIT CLASS IF NAME IS NOT THE SAME
