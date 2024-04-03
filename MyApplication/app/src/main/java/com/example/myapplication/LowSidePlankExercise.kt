@@ -8,14 +8,17 @@ class LowSidePlankExercise(private val cameraPage: CameraPage) : Exercise() {
 
     private fun isLowSidePlankCorrect(keypoints: Array<Pair<Float, Float>>, confidenceThreshold: Float) : Boolean {
         val angles = analyzeBodyPos(keypoints)
-        val (leftArmAngle , leftBodyAngle , rightArmAngle , rightBodyAngle) = angles
+        val conditions = listOf(
+            angles[0] in 70.0f..110.0f,
+            angles[1] in 130.0f..210.0f,
+            angles[2] in 70.0f..110.0f,
+            angles[3] in 130.0f..210.0f
+        )
 
-        val isLeftArmStraight = leftArmAngle in 70.0..110.0
-        val isLeftBodyAligned = leftBodyAngle in 130.0..210.0
+        val score = calculateConditionsScore(conditions)
+        setScore(score);
 
-        val isRightArmStraight = rightArmAngle in 70.0..110.0
-        val isRightBodyAligned = rightBodyAngle in 130.0..210.0
-
-        return (isLeftArmStraight and isLeftBodyAligned) or (isRightArmStraight and isRightBodyAligned)
+        val scoreThreshold = 75.0
+        return score >= scoreThreshold
     }
 }

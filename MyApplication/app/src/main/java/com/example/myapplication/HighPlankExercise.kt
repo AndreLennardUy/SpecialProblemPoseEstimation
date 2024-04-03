@@ -7,15 +7,19 @@ class HighPlankExercise(private val cameraPage: CameraPage) : Exercise() {
         return isHighPlankCorrect(keypoints, confidenceThreshold)
     }
 
-    //Function that give the correct coordinate for a perfect High Plank
+    //Function that give the correct coordinate and score for a perfect High Plank
     private fun isHighPlankCorrect(keypoints: Array<Pair<Float, Float>>, confidenceThreshold: Float): Boolean {
         val angles = analyzeBodyPos(keypoints)
-        val (leftArmAngle, rightArmAngle, leftBodyAngle, rightBodyAngle) = angles
+        val conditions = listOf(
+            angles[0] in 160.0f..180.0f,
+            angles[1] in 160.0f..180.0f,
+            angles[2] in 130.0f..195.0f,
+            angles[3] in 130.0f..195.0f
+        )
+        val score = calculateConditionsScore(conditions)
+        setScore(score);
 
-        // MODIFY HERE TO HAVE THE POSTURE COORDINATES
-        val isArmsStraight = leftArmAngle in 160.0f..180.0f && rightArmAngle in 160.0f..180.0f
-        val isBodyAligned = leftBodyAngle in 130.0f..195.0f && rightBodyAngle in 130.0f..195.0f
-
-        return isArmsStraight && isBodyAligned
+        val scoreThreshold = 75.0
+        return score >= scoreThreshold
     }
 }

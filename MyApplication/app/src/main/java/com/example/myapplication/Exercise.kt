@@ -1,6 +1,16 @@
 package com.example.myapplication
 
 abstract class  Exercise{
+
+    private var score = 0.00;
+
+    public fun setScore(score: Double){
+        this.score = score;
+    }
+
+    public fun getScore(): Double{
+        return this.score;
+    }
    abstract fun analyzeKeypoints(keypoints: Array<Pair<Float, Float>>, confidenceThreshold: Float): Boolean
 
     // Calculates the angle formed by three points.
@@ -46,5 +56,14 @@ abstract class  Exercise{
 
         // Return the calculated angles.
         return listOf(leftArmAngle, rightArmAngle, leftBodyAngle, rightBodyAngle)
+    }
+
+    fun calculateConditionsScore(conditions: List<Boolean>): Double {
+        val conditionsMet = conditions.count { it }
+        return if (conditions.isNotEmpty()) {
+            (conditionsMet.toDouble() / conditions.size) * 100
+        } else {
+            0.0
+        }
     }
 }

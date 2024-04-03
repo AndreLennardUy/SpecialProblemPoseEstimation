@@ -218,7 +218,6 @@ class CameraPage : AppCompatActivity() {
                         feedbackTextView.text = if (isCorrect) "Correct $title" else "Adjust Your Position"
                     }
                     if(!isCorrect) soundPool.play(error, 1f, 1f, 0, 0, 1f)
-
                 }else {
                     startExerciseButton.text = "Start"
                 }
@@ -302,6 +301,8 @@ class CameraPage : AppCompatActivity() {
                 countDown.text = "FINISH!!"
                 isExerciseStarted = false
                 soundPool.play(end, 1f, 1f, 0, 0, 1f)
+                val score = exercise.getScore();
+                countDown.text = "Your Score $score"
             }
         }
         timer.start()
