@@ -26,17 +26,8 @@ abstract class  Exercise{
         return angleDegrees
     }
 
-    // Calculates angles relevant to determining the correctness of the high plank position.
-    public fun analyzeBodyPos(keypoints: Array<Pair<Float, Float>>): List<Float> {
-        // Default angles in case of insufficient keypoints. These could be set to indicate an error.
-        val defaultAngle = -1f
-
-        // Ensure the keypoints array contains enough elements.
-        if (keypoints.size < 17) {
-            // Return a list of default angles indicating an error or unexpected condition.
-            return List(4) { defaultAngle }
-        }
-
+    // Calculate all the angles needed for the base analysis.
+    protected fun calculateAllAngles(keypoints: Array<Pair<Float, Float>>): List<Float> {
         val leftWrist = keypoints[9]
         val leftElbow = keypoints[7]
         val leftShoulder = keypoints[5]
@@ -54,8 +45,32 @@ abstract class  Exercise{
         val leftBodyAngle = calculateAngle(leftShoulder, leftHip, leftKnee)
         val rightBodyAngle = calculateAngle(rightShoulder, rightHip, rightKnee)
 
-        // Return the calculated angles.
         return listOf(leftArmAngle, rightArmAngle, leftBodyAngle, rightBodyAngle)
+    }
+
+    // Analyzes the body position for the basic exercise
+    // Accept a list of triples representing indices for additional angles.
+    public open fun analyzeBodyPos(
+        keypoints: Array<Pair<Float, Float>>,
+        additionalAngleIndices: List<Triple<Int, Int, Int>> = emptyList() // Default to no additional angles
+    ): List<Float> {
+        // Ensure the keypoints array contains enough elements.
+        if (keypoints.size < 17) {
+            val defaultAngle = -1f
+            // Return a list of default angles plus a space for each additional angle requested.
+            return List(4 + additionalAngleIndices.size) { defaultAngle }
+        }
+
+        // Calculate the base angles.
+        val baseAngles = calculateAllAngles(keypoints)
+
+        // Calculate additional angles.
+        val additionalAngles = additionalAngleIndices.map { (first, mid, last) ->
+            calculateAngle(keypoints[first], keypoints[mid], keypoints[last])
+        }
+
+        // Return the combined list of base and additional angles.
+        return baseAngles + additionalAngles
     }
 
     fun calculateConditionsScore(conditions: List<Boolean>): Double {
