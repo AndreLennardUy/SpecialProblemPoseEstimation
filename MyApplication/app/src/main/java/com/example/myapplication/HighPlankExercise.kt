@@ -11,10 +11,10 @@ class HighPlankExercise(private val cameraPage: CameraPage) : Exercise() {
     private fun isHighPlankCorrect(keypoints: Array<Pair<Float, Float>>, confidenceThreshold: Float): Boolean {
         val angles = analyzeBodyPos(keypoints)
         val conditions = listOf(
-            angles[0] in 160.0f..180.0f,
-            angles[1] in 160.0f..180.0f,
-            angles[2] in 130.0f..195.0f,
-            angles[3] in 130.0f..195.0f
+            angles[0] in 160.0f..200.0f,
+            angles[1] in 160.0f..200.0f,
+            angles[2] in 160.0f..200.0f,
+            angles[3] in 160.0f..200.0f
         )
         val score = calculateConditionsScore(conditions)
         setScore(score);
