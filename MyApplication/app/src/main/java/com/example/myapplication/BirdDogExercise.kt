@@ -12,8 +12,8 @@ class BirdDogExercise(private val cameraPage: CameraPage) : Exercise() {
         val angles = analyzeBodyPos(keypoints)
 
         // Determine which arm and leg are straight based on confidence scores
-        val isLeftArmRightLegStraight = angles[0] in 160.0f..200.0f && angles[3] in 160.0f..200.0f
-        val isRightArmLeftLegStraight = angles[1] in 160.0f..200.0f && angles[2] in 160.0f..200.0f
+        val isLeftArmRightLegStraight = angles[0] in 160.0f..210.0f && angles[3] in 160.0f..210.0f
+        val isRightArmLeftLegStraight = angles[1] in 160.0f..210.0f && angles[2] in 160.0f..210.0f
 
         val conditions = listOf(
             isLeftArmRightLegStraight || isRightArmLeftLegStraight,
