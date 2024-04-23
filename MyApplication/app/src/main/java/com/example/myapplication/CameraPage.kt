@@ -113,6 +113,12 @@ class CameraPage : AppCompatActivity() {
         val titleTextView: TextView = findViewById(R.id.title)
         titleTextView.text = title
 
+        //Setting Difficulty Level
+        val difficulty = intent.getStringExtra("LEVEL") ?: "Level"
+        val difficultyTextView: TextView = findViewById(R.id.difficulty)
+        difficultyTextView.text = difficulty;
+
+
         // back to main view
         val backBtn: ImageButton = findViewById(R.id.backBtn)
         backBtn.setOnClickListener {

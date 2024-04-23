@@ -26,11 +26,11 @@ class MainActivity : AppCompatActivity() {
 
     fun setButtonClickListener(button: Button, title: String) {
         button.setOnClickListener {
-            toCameraPage(title)
+            toLevelPage(title)
         }
     }
-    fun toCameraPage(title: String){
-        val intent = Intent(this , CameraPage::class.java)
+    fun toLevelPage(title: String){
+        val intent = Intent(this , LevelPage::class.java)
         intent.putExtra("TITLE" , title)
         startActivity(intent)
     }

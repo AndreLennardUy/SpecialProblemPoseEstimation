@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity"
+    android:keepScreenOn="true">
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginStart="14dp"
+        android:layout_marginTop="87dp"
+        android:layout_marginEnd="15dp"
+        android:text="Please Select Difficulty Level"
+        android:textAlignment="center"
+        android:textAllCaps="true"
+        android:textSize="24sp"
+        tools:layout_editor_absoluteX="163dp"
+        tools:layout_editor_absoluteY="33dp" />
+
+    <TextView
+        android:id="@+id/title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="154dp"
+        android:textAlignment="center"
+        android:textSize="34sp" />
+
+    <ImageButton
+        android:id="@+id/backBtn"
+        android:layout_width="71dp"
+        android:layout_height="43dp"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginStart="4dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="287dp"
+        android:background="@null"
+        app:srcCompat="?attr/actionModeCloseDrawable" />
+
+    <Button
+        android:id="@+id/easy"
+        android:layout_width="171dp"
+        android:layout_height="64dp"
+        android:layout_below="@+id/textView"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="95dp"
+        android:text="Easy" />
+
+    <Button
+        android:id="@+id/intermediate"
+        android:layout_width="171dp"
+        android:layout_height="64dp"
+        android:layout_below="@+id/easy"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="88dp"
+        android:text="intermediate " />
+
+    <Button
+        android:id="@+id/expert"
+        android:layout_width="171dp"
+        android:layout_height="64dp"
+        android:layout_below="@+id/intermediate"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="88dp"
+        android:text="Expert" />
+
+</RelativeLayout>
