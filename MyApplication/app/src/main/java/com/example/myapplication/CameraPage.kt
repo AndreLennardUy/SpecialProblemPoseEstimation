@@ -79,6 +79,9 @@ class CameraPage : AppCompatActivity() {
         end = soundPool.load(this, R.raw.end, 1)
         error = soundPool.load(this, R.raw.error, 1)
 
+        val difficulty = intent.getStringExtra("LEVEL")
+        val title = intent.getStringExtra("TITLE")
+
         // Start correcting form and timer
         val startExerciseButton: Button = findViewById(R.id.startBtn)
         val countDown: TextView = findViewById(R.id.countDown)
@@ -94,7 +97,14 @@ class CameraPage : AppCompatActivity() {
            } else {
                soundPool.play(start , 1f, 1f, 0, 0, 1f)
                isExerciseStarted = true
-               countDownTimer = startCountDownTimer(countDown, 30000, 1000)
+               when(difficulty){
+                   "Easy" -> countDownTimer = startCountDownTimer(countDown, 30000, 1000);
+                   "Intermediate" -> countDownTimer = startCountDownTimer(countDown , 90000, 1000);
+                   "Expert" -> countDownTimer = startCountDownTimer(countDown , 300000, 1000);
+                   else -> {
+                       isExerciseStarted = false;
+                   }
+               }
            }
         }
 
@@ -109,12 +119,10 @@ class CameraPage : AppCompatActivity() {
         handler = Handler(handlerThread.looper)
 
         // Setting the title of the pose from the button that was click
-        val title = intent.getStringExtra("TITLE") ?: "Title"
         val titleTextView: TextView = findViewById(R.id.title)
         titleTextView.text = title
 
         //Setting Difficulty Level
-        val difficulty = intent.getStringExtra("LEVEL") ?: "Level"
         val difficultyTextView: TextView = findViewById(R.id.difficulty)
         difficultyTextView.text = difficulty;
 

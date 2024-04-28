@@ -45,11 +45,14 @@ class LevelPage : AppCompatActivity() {
         }
     }
 
-    fun toCameraPage(level : String){
+    fun toCameraPage(level: String) {
         val title = intent.getStringExtra("TITLE")
-        val intent = Intent(this , CameraPage::class.java)
-        intent.putExtra("LEVEL" , level)
-        intent.putExtra("TITLE", title)
+        val intent = Intent(this, CameraPage::class.java)
+        intent.putExtra("LEVEL", level)
+        title?.let {
+            intent.putExtra("TITLE", it)
+        }
         startActivity(intent)
     }
+
 }
