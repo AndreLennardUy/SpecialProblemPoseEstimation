@@ -2,6 +2,7 @@ package com.example.myapplication
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -17,6 +18,7 @@ import android.os.Bundle
 import android.os.CountDownTimer
 import android.os.Handler
 import android.os.HandlerThread
+import android.util.Log
 import android.view.Surface
 import android.view.TextureView
 import android.widget.Button
@@ -316,12 +318,21 @@ class CameraPage : AppCompatActivity() {
                 isExerciseStarted = false
                 soundPool.play(end, 1f, 1f, 0, 0, 1f)
                 val score = exercise.getScore();
-                countDown.text = "Your Score $score"
+                Log.d("SCORECam" , score.toString())
+                toScorePage(score)
             }
         }
         timer.start()
         return timer
     }
 
-
+    fun toScorePage(score: Double){
+        val difficulty = intent.getStringExtra("LEVEL")
+        val title = intent.getStringExtra("TITLE")
+        val intent = Intent(this , ScorePage::class.java)
+        intent.putExtra("LEVEL", difficulty)
+        intent.putExtra("TITLE", title)
+        intent.putExtra("SCORE", score)
+        startActivity(intent);
+    }
 }
