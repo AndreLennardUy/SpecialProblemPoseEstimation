@@ -14,6 +14,7 @@ import android.hardware.camera2.CameraDevice
 import android.hardware.camera2.CameraManager
 import android.media.AudioAttributes
 import android.media.SoundPool
+import android.net.Uri
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.os.Handler
@@ -26,12 +27,15 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.FileProvider
 import com.example.myapplication.ml.AutoModel4
 import org.tensorflow.lite.DataType
 import org.tensorflow.lite.support.image.ImageProcessor
 import org.tensorflow.lite.support.image.TensorImage
 import org.tensorflow.lite.support.image.ops.ResizeOp
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
+import java.io.File
+import java.io.FileOutputStream
 
 
 class CameraPage : AppCompatActivity() {
@@ -70,6 +74,7 @@ class CameraPage : AppCompatActivity() {
     lateinit var cameraManager: CameraManager
     lateinit var exercise: Exercise
     var isExerciseStarted = false
+    lateinit var captureBitmap : Bitmap
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -150,24 +155,31 @@ class CameraPage : AppCompatActivity() {
                 return false
             }
             // when image detect frames or images
-            override fun onSurfaceTextureUpdated(p0: SurfaceTexture) {
-                // setup Model and load
-                bitmap = textureView.bitmap!!
-                var tensorImage = TensorImage(DataType.UINT8)
-                tensorImage.load(bitmap)
-                tensorImage = imageProcessor.process(tensorImage)
+                override fun onSurfaceTextureUpdated(p0: SurfaceTexture) {
+                    // setup Model and load
+                    bitmap = textureView.bitmap!!
+                    var tensorImage = TensorImage(DataType.UINT8)
+                    tensorImage.load(bitmap)
+                    tensorImage = imageProcessor.process(tensorImage)
 
-                // convert image into tensorflow acceptable data type and size
-                val inputFeature0 = TensorBuffer.createFixedSize(intArrayOf(1, 192, 192, 3), DataType.UINT8)
-                inputFeature0.loadBuffer(tensorImage.buffer)
+                    // convert image into tensorflow acceptable data type and size
+                    val inputFeature0 = TensorBuffer.createFixedSize(intArrayOf(1, 192, 192, 3), DataType.UINT8)
+                    inputFeature0.loadBuffer(tensorImage.buffer)
 
-                // display the processed image into the image
-                val outputs = model.process(inputFeature0)
-                val outputFeature0 = outputs.outputFeature0AsTensorBuffer.floatArray
-                var mutableBitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true)
+                    // display the processed image into the image
+                    val outputs = model.process(inputFeature0)
+                    val outputFeature0 = outputs.outputFeature0AsTensorBuffer.floatArray
+                    var mutableBitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true)
+
+                    if (isExerciseStarted) {
+                        captureBitmap = mutableBitmap
+                    } else {
+                        // If exercise is not started, do nothing or handle the case accordingly
+                    }
+
                 var canvas = Canvas(mutableBitmap)
-                val h = bitmap.height
-                val w = bitmap.width
+                    val h = bitmap.height
+                    val w = bitmap.width
 
                 // join the pair into a line
                 val jointCoordinates = Array<Pair<Float, Float>?>(17) { null }
@@ -326,13 +338,34 @@ class CameraPage : AppCompatActivity() {
         return timer
     }
 
-    fun toScorePage(score: Double){
+    fun saveBitmapToTempStorage(bitmap: Bitmap): Uri? {
+        val context = applicationContext
+        val cacheDir = context.cacheDir
+        val file = File.createTempFile("temp_image", ".jpg", cacheDir)
+        val outputStream = FileOutputStream(file)
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+        outputStream.flush()
+        outputStream.close()
+        return FileProvider.getUriForFile(context, context.packageName + ".provider", file)
+    }
+
+    fun toScorePage(score: Double) {
+        // Retrieve data from intent extras
         val difficulty = intent.getStringExtra("LEVEL")
         val title = intent.getStringExtra("TITLE")
-        val intent = Intent(this , ScorePage::class.java)
+
+        // Save bitmap to temporary storage
+        val capturedBitmap = captureBitmap // Replace `yourBitmap` with the actual Bitmap object
+        val uri = saveBitmapToTempStorage(capturedBitmap)
+
+        // Start ScorePage activity with intent
+        val intent = Intent(this, ScorePage::class.java)
         intent.putExtra("LEVEL", difficulty)
         intent.putExtra("TITLE", title)
         intent.putExtra("SCORE", score)
-        startActivity(intent);
+        uri?.let { intent.putExtra("FRAME", it.toString()) }
+        Log.d("URI" , uri.toString())
+        startActivity(intent)
     }
+
 }

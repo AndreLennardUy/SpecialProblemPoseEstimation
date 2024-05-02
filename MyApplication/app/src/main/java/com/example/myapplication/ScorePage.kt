@@ -2,8 +2,12 @@ package com.example.myapplication
 
 import android.app.AlertDialog
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
 import android.os.Bundle
 import android.widget.Button
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 
@@ -16,12 +20,21 @@ class ScorePage : AppCompatActivity() {
         var difficultyTxt : TextView = findViewById(R.id.level);
         var scoreTxt : TextView = findViewById(R.id.score);
         var finishBtn : Button = findViewById(R.id.finishBtn);
+        var display : ImageView = findViewById(R.id.display);
 
 
         val title = intent.getStringExtra("TITLE");
         val difficulty = intent.getStringExtra("LEVEL");
         val score = intent.getDoubleExtra("SCORE" , 0.0)
 
+        val bitmap = retrieveBitmapFromTempStorage(intent)
+        if (bitmap != null) {
+            display.setImageBitmap(bitmap)
+        } else {
+            // Handle the case when bitmap retrieval fails (e.g., display a placeholder image)
+            // You can set a placeholder image or show an error message here
+            display.setImageResource(R.drawable.ic_launcher_background)
+        }
 
         titleTxt.text = title;
         difficultyTxt.text = difficulty;
@@ -54,6 +67,10 @@ class ScorePage : AppCompatActivity() {
             alertDialog.show()
         }
     }
-
-
+    fun retrieveBitmapFromTempStorage(intent: Intent): Bitmap? {
+        val uriString = intent.getStringExtra("FRAME")
+        val uri = Uri.parse(uriString)
+        val inputStream = contentResolver.openInputStream(uri)
+        return BitmapFactory.decodeStream(inputStream)
+    }
 }
