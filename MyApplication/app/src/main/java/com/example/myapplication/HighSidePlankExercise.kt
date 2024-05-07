@@ -7,7 +7,7 @@ class HighSidePlankExercise(private val cameraPage: CameraPage) : Exercise() {
     }
 
     private fun isHighSidePlankCorrect(keypoints: Array<Pair<Float, Float>>, confidenceThreshold: Float) : Boolean {
-        val angles = calculateAllAngles(keypoints)
+        val angles = analyzeBodyPos(keypoints)
         val leftArmAngle = angles[0]
         val rightArmAngle = angles[1]
 
