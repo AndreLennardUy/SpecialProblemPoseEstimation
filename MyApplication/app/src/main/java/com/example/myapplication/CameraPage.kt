@@ -36,6 +36,7 @@ import org.tensorflow.lite.support.image.ops.ResizeOp
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
 import java.io.File
 import java.io.FileOutputStream
+import kotlin.math.roundToInt
 
 
 class CameraPage : AppCompatActivity() {
@@ -75,6 +76,10 @@ class CameraPage : AppCompatActivity() {
     lateinit var exercise: Exercise
     var isExerciseStarted = false
     lateinit var captureBitmap : Bitmap
+    val resultList = mutableListOf<Boolean>()
+    private lateinit var filteredKeypointsGlobal: Array<Pair<Float, Float>>
+    private var confidenceThresholdGlobal: Float = 0.3f
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -241,7 +246,7 @@ class CameraPage : AppCompatActivity() {
 
                 // Convert the extracted keypoints to the required format
                 val filteredKeypoints = jointCoordinates.filterNotNull().toTypedArray()
-
+                filteredKeypointsGlobal = jointCoordinates.filterNotNull().toTypedArray()
                 // Initialize Object with type of pose
                 when(title){
                     "High Plank" -> exercise = HighPlankExercise(this@CameraPage)
@@ -330,12 +335,17 @@ class CameraPage : AppCompatActivity() {
         if(grantResults[0] != PackageManager.PERMISSION_GRANTED) get_permissions()
     }
 
+    // timer countdown
     fun startCountDownTimer(countDown: TextView, totalTime: Long, countDownInterval: Long): CountDownTimer {
         val timer = object : CountDownTimer(totalTime, countDownInterval) {
             override fun onTick(millisUntilFinished: Long) {
                 // Update the TextView
                 val secondsRemaining = millisUntilFinished / 1000
                 countDown.text = "$secondsRemaining"
+
+                // Store the result of analyzeKeypoints in the list
+                val isCorrect = exercise.analyzeKeypoints(filteredKeypointsGlobal, confidenceThresholdGlobal)
+                resultList.add(isCorrect)
             }
 
             override fun onFinish() {
@@ -343,7 +353,7 @@ class CameraPage : AppCompatActivity() {
                 countDown.text = "FINISH!!"
                 isExerciseStarted = false
                 soundPool.play(end, 1f, 1f, 0, 0, 1f)
-                val score = exercise.getScore();
+                val score = calculateScore(resultList)
                 toScorePage(score)
             }
         }
@@ -378,6 +388,25 @@ class CameraPage : AppCompatActivity() {
         intent.putExtra("SCORE", score)
         uri?.let { intent.putExtra("FRAME", it.toString()) }
         startActivity(intent)
+    }
+
+// Function to calculate score based on resultList
+    fun calculateScore(resultList: List<Boolean>): Double {
+        // Count the number of correct results
+        val correctCount = resultList.count { it }
+
+        // Calculate the total number of results
+        val total = resultList.size
+
+        // Calculate the score as percentage of correct answers
+        val score = if (total > 0) {
+            val rawScore = correctCount.toDouble() / total.toDouble() * 100
+            // Round the score to two decimal places
+            (rawScore * 100).roundToInt() / 100.0
+        } else {
+            0.0 // Handle division by zero
+        }
+        return if (score > 85.0) 100.0 else score
     }
 
 }
