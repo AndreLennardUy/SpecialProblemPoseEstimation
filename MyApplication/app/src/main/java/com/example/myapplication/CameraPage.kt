@@ -394,7 +394,7 @@ class CameraPage : AppCompatActivity() {
         } else {
             0.0 // Handle division by zero
         }
-        return score
+        return if (score > 85.0) 100.0 else score
     }
 
 }
