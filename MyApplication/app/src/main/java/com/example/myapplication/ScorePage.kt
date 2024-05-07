@@ -47,7 +47,7 @@ class ScorePage : AppCompatActivity() {
         alertDialogBuilder
             .setTitle("ATTENTION")
             .setMessage("Before Exiting this page make sure to take a screenshot of your score to be presented to your teacher")
-            .setCancelable(false) // Prevent dismissing dialog by tapping outside
+            .setCancelable(false)
 
             // Positive button
             .setPositiveButton("OK") { dialog, which ->

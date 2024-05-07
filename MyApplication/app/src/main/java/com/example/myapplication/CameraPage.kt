@@ -2,6 +2,7 @@ package com.example.myapplication
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.AlertDialog
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -19,7 +20,6 @@ import android.os.Bundle
 import android.os.CountDownTimer
 import android.os.Handler
 import android.os.HandlerThread
-import android.util.Log
 import android.view.Surface
 import android.view.TextureView
 import android.widget.Button
@@ -80,6 +80,20 @@ class CameraPage : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_camera_page)
         get_permissions()
+
+        val alertDialogBuilder = AlertDialog.Builder(this)
+
+        alertDialogBuilder
+            .setTitle("Critical for best results")
+            .setMessage("Before starting the activity, ensure the camera is positioned to capture your entire body. This is critical for best results.")
+            .setCancelable(false)
+
+            .setPositiveButton("OK") { dialog, which ->
+                dialog.dismiss()
+            }
+
+        val alertDialog = alertDialogBuilder.create()
+        alertDialog.show()
 
         // init sounds
         start = soundPool.load(this, R.raw.start, 1)
@@ -330,7 +344,6 @@ class CameraPage : AppCompatActivity() {
                 isExerciseStarted = false
                 soundPool.play(end, 1f, 1f, 0, 0, 1f)
                 val score = exercise.getScore();
-                Log.d("SCORECam" , score.toString())
                 toScorePage(score)
             }
         }
@@ -364,7 +377,6 @@ class CameraPage : AppCompatActivity() {
         intent.putExtra("TITLE", title)
         intent.putExtra("SCORE", score)
         uri?.let { intent.putExtra("FRAME", it.toString()) }
-        Log.d("URI" , uri.toString())
         startActivity(intent)
     }
 
