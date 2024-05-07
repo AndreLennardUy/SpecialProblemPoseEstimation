@@ -40,8 +40,8 @@ abstract class  Exercise{
         val rightKnee = keypoints[14]
 
         // Calculate angles, assuming calculateAngle can handle all input correctly.
-        val leftArmAngle = calculateAngle(leftWrist, leftElbow, leftShoulder)
-        val rightArmAngle = calculateAngle(rightWrist, rightElbow, rightShoulder)
+        val leftArmAngle = calculateAngle(leftShoulder, leftElbow, leftWrist)
+        val rightArmAngle = calculateAngle(rightShoulder, rightElbow, rightWrist)
         val leftBodyAngle = calculateAngle(leftShoulder, leftHip, leftKnee)
         val rightBodyAngle = calculateAngle(rightShoulder, rightHip, rightKnee)
 
