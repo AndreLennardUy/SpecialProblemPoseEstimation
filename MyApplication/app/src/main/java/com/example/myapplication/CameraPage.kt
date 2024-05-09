@@ -3,6 +3,7 @@ package com.example.myapplication
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.AlertDialog
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -11,21 +12,25 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.SurfaceTexture
 import android.hardware.camera2.CameraCaptureSession
+import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraDevice
 import android.hardware.camera2.CameraManager
 import android.media.AudioAttributes
 import android.media.SoundPool
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.os.Handler
 import android.os.HandlerThread
+import android.util.Log
 import android.view.Surface
 import android.view.TextureView
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import com.example.myapplication.ml.AutoModel4
@@ -79,6 +84,9 @@ class CameraPage : AppCompatActivity() {
     val resultList = mutableListOf<Boolean>()
     private lateinit var filteredKeypointsGlobal: Array<Pair<Float, Float>>
     private var confidenceThresholdGlobal: Float = 0.3f
+    private lateinit var frontCameraId: String
+    private lateinit var backCameraId: String
+    private var currentCameraId: String? = null
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -94,6 +102,7 @@ class CameraPage : AppCompatActivity() {
             .setCancelable(false)
 
             .setPositiveButton("OK") { dialog, which ->
+                currentCameraId?.let { open_camera(it) }
                 dialog.dismiss()
             }
 
@@ -139,10 +148,42 @@ class CameraPage : AppCompatActivity() {
         model = AutoModel4.newInstance(this)
         imageView = findViewById(R.id.imageView)
         textureView = findViewById(R.id.textureView)
-        cameraManager = getSystemService(CAMERA_SERVICE) as CameraManager
         handlerThread = HandlerThread("videoThread")
         handlerThread.start()
         handler = Handler(handlerThread.looper)
+        cameraManager = getSystemService(Context.CAMERA_SERVICE) as CameraManager
+        val cameraIdList = cameraManager.cameraIdList
+        val cameraToggle: ImageButton = findViewById(R.id.cameraToggle);
+
+        // Initialize camera IDs
+        if (!cameraIdList.isNullOrEmpty()) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                for (cameraId in cameraIdList) {
+                    val cameraCharacteristics = cameraManager?.getCameraCharacteristics(cameraId)
+                    val cameraLensFacing =
+                        cameraCharacteristics?.get(CameraCharacteristics.LENS_FACING)
+                    if (cameraLensFacing == CameraCharacteristics.LENS_FACING_FRONT) {
+                        frontCameraId = cameraId
+                    } else if (cameraLensFacing == CameraCharacteristics.LENS_FACING_BACK) {
+                        backCameraId = cameraId
+                        currentCameraId = backCameraId
+                    }
+                }
+            }
+        }
+
+        // Ensure both front and back camera ids are initialized
+        if (!::frontCameraId.isInitialized || !::backCameraId.isInitialized) {
+            // Handle error, for example, by displaying a message and closing the activity
+            Toast.makeText(this, "Failed to get front and back camera ids", Toast.LENGTH_SHORT).show()
+            finish()
+            return
+        }
+
+        cameraToggle.setOnClickListener {
+            switchCamera(currentCameraId)
+        }
+
 
         // Setting the title of the pose from the button that was click
         val titleTextView: TextView = findViewById(R.id.title)
@@ -163,7 +204,7 @@ class CameraPage : AppCompatActivity() {
         textureView.surfaceTextureListener = object:TextureView.SurfaceTextureListener{
             // when application is ready it opens the users camera
             override fun onSurfaceTextureAvailable(p0: SurfaceTexture, p1: Int, p2: Int) {
-                open_camera()
+
             }
 
             override fun onSurfaceTextureSizeChanged(p0: SurfaceTexture, p1: Int, p2: Int) {
@@ -297,33 +338,65 @@ class CameraPage : AppCompatActivity() {
         model.close()
     }
 
+    // Function to toggle between front and back cameras
+    private fun switchCamera(curr: String?) {
+        if(curr == frontCameraId){
+            currentCameraId = backCameraId
+            open_camera(currentCameraId!!);
+        } else if (curr == backCameraId){
+            currentCameraId = frontCameraId
+            open_camera(currentCameraId!!)
+        }
+    }
+
     // open camera function
     @SuppressLint("MissingPermission")
-    fun open_camera(){
-        cameraManager.openCamera(cameraManager.cameraIdList[0], object: CameraDevice.StateCallback(){
-            override fun onOpened(p0: CameraDevice) {
-                var captureRequest = p0.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW)
-                var surface = Surface(textureView.surfaceTexture)
-                captureRequest.addTarget(surface)
-                p0.createCaptureSession(listOf(surface), object: CameraCaptureSession.StateCallback(){
-                    override fun onConfigured(p0: CameraCaptureSession) {
-                        p0.setRepeatingRequest(captureRequest.build(), null, null)
-                    }
-                    override fun onConfigureFailed(p0: CameraCaptureSession) {
+    var cameraDevice: CameraDevice? = null
+    var cameraCaptureSession: CameraCaptureSession? = null
 
+    @SuppressLint("MissingPermission")
+    fun open_camera(cameraId: String) {
+        // Close the old camera device if it's already open
+        cameraDevice?.close()
+        cameraDevice = null // Reset cameraDevice reference
+
+        // Open the new camera device
+        cameraManager.openCamera(cameraId, object : CameraDevice.StateCallback() {
+            override fun onOpened(camera: CameraDevice) {
+                cameraDevice = camera
+
+                val captureRequest = cameraDevice?.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW)
+                val surface = Surface(textureView.surfaceTexture)
+                captureRequest?.addTarget(surface)
+
+                cameraDevice?.createCaptureSession(listOf(surface), object : CameraCaptureSession.StateCallback() {
+                    override fun onConfigured(session: CameraCaptureSession) {
+                        cameraCaptureSession = session
+                        captureRequest?.let {
+                            cameraCaptureSession?.setRepeatingRequest(it.build(), null, null)
+                        }
+                    }
+
+                    override fun onConfigureFailed(session: CameraCaptureSession) {
+                        // Handle configuration failure
                     }
                 }, handler)
             }
 
-            override fun onDisconnected(p0: CameraDevice) {
-
+            override fun onDisconnected(camera: CameraDevice) {
+                cameraDevice?.close() // Close the camera device if it's disconnected
+                cameraDevice = null // Reset cameraDevice reference
             }
 
-            override fun onError(p0: CameraDevice, p1: Int) {
-
+            override fun onError(camera: CameraDevice, error: Int) {
+                // Handle camera error
+                cameraDevice?.close() // Close the camera device in case of an error
+                cameraDevice = null // Reset cameraDevice reference
             }
         }, handler)
     }
+
+
     // get app permission to use camera
     fun get_permissions(){
         if(checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED){
