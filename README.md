@@ -44,10 +44,10 @@ Contributions are welcome! If you find any issues or have suggestions for improv
 - [Android Architecture Components](https://developer.android.com/topic/libraries/architecture)
 - [Camera2 API](https://developer.android.com/guide/topics/media/camera)
 
-  ## APK File 
-  -[IsoAI](https://drive.google.com/file/d/1T3qlCwJQ3LY5IAmktiMmLMJOHiW6abiV/view?usp=sharing)
+## APK File 
+-[IsoAI](https://drive.google.com/file/d/1T3qlCwJQ3LY5IAmktiMmLMJOHiW6abiV/view?usp=sharing)
   
-  ## Team Wangan
-  - Barcenilla, Adrian
-  - Miones, John
-  - Uy, Andre
+## Team Wangan
+- Barcenilla, Adrian
+- Miones, John
+- Uy, Andre
