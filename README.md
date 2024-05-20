@@ -1,6 +1,6 @@
 # Isometric Exercise Pose Detector
 
-This is an Android application that utilizes the MoveNet Lightning library from TensorFlow to detect and grade isometric exercise poses in real-time. 
+This Android application utilizes the MoveNet Lightning library from TensorFlow to detect and grade isometric exercise poses in real time. 
 The app uses the device's camera to capture the user's movements and provides feedback on the correctness of the exercise pose.
 
 ## Features
@@ -44,6 +44,9 @@ Contributions are welcome! If you find any issues or have suggestions for improv
 - [Android Architecture Components](https://developer.android.com/topic/libraries/architecture)
 - [Camera2 API](https://developer.android.com/guide/topics/media/camera)
 
+  ## APK File 
+  -[IsoAI](https://drive.google.com/file/d/1T3qlCwJQ3LY5IAmktiMmLMJOHiW6abiV/view?usp=sharing)
+  
   ## Team Wangan
   - Barcenilla, Adrian
   - Miones, John
