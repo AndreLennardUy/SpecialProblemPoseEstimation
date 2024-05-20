@@ -1,13 +1,14 @@
 # Isometric Exercise Pose Detector
 
-This Android application utilizes the MoveNet Lightning library from TensorFlow to detect and grade isometric exercise poses in real time. 
+This Android application utilizes the MoveNet Lightning library from TensorFlow to detect and grade isometric exercise poses in real-time. 
 The app uses the device's camera to capture the user's movements and provides feedback on the correctness of the exercise pose.
 
 ## Features
 
 - Real-time pose detection and grading for isometric exercises
+- Includes support for the High Plank, High Side Plank, Low Side Plank, and Bird Dog Pose exercises
 - User-friendly interface for selecting exercises and viewing results
-- Detailed feedback on correct and incorrect body positions
+- Feedback on correct and incorrect isometric exercise positions
 
 ## Tech Stack
 
@@ -27,10 +28,10 @@ The app uses the device's camera to capture the user's movements and provides fe
 
 1. Launch the app on your Android device.
 2. Select the isometric exercise you want to perform from the list.
-3. Select Difficulty
-4. Position yourself in front of the camera, and the app will start detecting your pose.
+3. Select difficulty
+4. Position yourself before the camera, and the app will detect your pose.
 5. Follow the on-screen instructions and feedback to adjust your body position.
-6. The app will grade your pose
+6. The app will grade your pose based on the percentage of correct readings over the total duration of the exercise.
 
 
 ## Contributing
@@ -48,6 +49,6 @@ Contributions are welcome! If you find any issues or have suggestions for improv
 -[IsoAI](https://drive.google.com/file/d/1T3qlCwJQ3LY5IAmktiMmLMJOHiW6abiV/view?usp=sharing)
   
 ## Team Wangan
-- Barcenilla, Adrian
-- Miones, John
-- Uy, Andre
+- Barcenilla, Adrian Jay
+- Miones, John William
+- Uy, Andre Lennard
